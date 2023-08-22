@@ -50,24 +50,24 @@ void dbglog(char *fmt, ...)
 
 void dbg_logger_start()
 {
-	dbglog("# Diagnose report:\n");
+	dbglog("# Diagnose report:\r\n");
 }
 
 void dbg_logger_device_type(enum DEVICE_TYPE dt)
 {
 	if (dt == DEVICE_TYPE_ERISTA)
-		dbglog("Device type: Erista (V1)\n");
+		dbglog("Device type: Erista (V1)\r\n");
 	else if (dt == DEVICE_TYPE_MARIKO)
-		dbglog("Device type: Mariko (V2)\n");
+		dbglog("Device type: Mariko (V2)\r\n");
 	else if (dt == DEVICE_TYPE_LITE)
-		dbglog("Device type: Lite\n");
+		dbglog("Device type: Lite\r\n");
 	else
-		dbglog("Device type: unknown\n");
+		dbglog("Device type: unknown\r\n");
 }
 
 void dbg_logger_glitching_started()
 {
-	dbglog("Glitching started\n");
+	dbglog("Glitching started\r\n");
 }
 
 void dbg_logger_payload_flash_res_and_cid(uint32_t status, uint8_t *cid)
@@ -100,14 +100,14 @@ void dbg_logger_payload_flash_res_and_cid(uint32_t status, uint8_t *cid)
 					dbglog(" H26M62002JPR 32GB");
 				break;
 		}
-		dbglog("\n");
+		dbglog("\r\n");
 	}
-	dbglog("# Status: %X\n", status);
+	dbglog("# Status: %X\r\n", status);
 }
 
 void dbg_logger_new_config_and_save(glitch_cfg_t *new_cfg, int save_ret)
 {
-	dbglog("new cfg: [%d, %d.%d] save res: %x\n", new_cfg->offset, new_cfg->width, new_cfg->subcycle_delay, save_ret);
+	dbglog("new cfg: [%d, %d.%d] save res: %x\r\n", new_cfg->offset, new_cfg->width, new_cfg->subcycle_delay, save_ret);
 }
 
 void dbg_logger_glitch_result(glitch_cfg_t *new_cfg, uint8_t glitch_res, uint8_t mmc_flags, unsigned int datalen, uint8_t *data, uint8_t glitch_flags)
@@ -117,22 +117,22 @@ void dbg_logger_glitch_result(glitch_cfg_t *new_cfg, uint8_t glitch_res, uint8_t
 	{
 		dbglog("%02X", data[i]);
 	}
-	dbglog("\n");
+	dbglog("\r\n");
 }
 
 void dbg_logger_end()
 {
-	dbglog("Done.\n");
+	dbglog("Done.\r\n");
 }
 
 void dbg_logger_adc(uint32_t value)
 {
-	dbglog("adc: %d (flag %x)\n", value & 0xFFFF, value >> 16);
+	dbglog("adc: %d (flag %x)\r\n", value & 0xFFFF, value >> 16);
 }
 
 void dbg_logger_stats(uint32_t attempt, uint16_t offset, uint8_t width, uint8_t subcycle, uint8_t needs_reflash)
 {
-	dbglog("Attempt: %d, offset: %d, width: %d, subcycle: %d,  needs_reflash: %d\n", offset, width, subcycle, needs_reflash);
+	dbglog("Attempt: %d, offset: %d, width: %d, subcycle: %d,  needs_reflash: %d\r\n", offset, width, subcycle, needs_reflash);
 }
 
 logger dbg_logger =
@@ -221,7 +221,7 @@ void debug_main(struct bootloader_usb *usb)
 			received_len = 1;
 			first = 0;
 		}
-		dbglog("> %c\n", g_usb->receive_buffer[0]);
+		dbglog("> %c\r\n", g_usb->receive_buffer[0]);
 
 		switch (g_usb->receive_buffer[0])
 		{
@@ -240,12 +240,12 @@ void debug_main(struct bootloader_usb *usb)
 				char fpgaid[5];
 				memcpy(fpgaid, &fpga_type, 4);
 				fpgaid[4] = '\0';
-				dbglog(" FPGA ID: %s\n", fpgaid);
+				dbglog(" FPGA ID: %s\r\n", fpgaid);
 				break;
 			}
 			case 'p':
 			{
-				dbglog("# Programming eMMC payload...\n");
+				dbglog("# Programming eMMC payload...\r\n");
 				enum STATUSCODE status = fpga_reset();
 				uint8_t cid[16];
 				if (status == OK_FPGA_RESET)
@@ -266,28 +266,28 @@ void debug_main(struct bootloader_usb *usb)
 
 				dbg_logger_payload_flash_res_and_cid(status, cid);
 				if (status == ERR_UNKNOWN_DEVICE)
-					dbglog("# Please make sure console is powered on\n");
+					dbglog("# Please make sure console is powered on\r\n");
 				break;
 			}
 			case 'd':
 			{
-				dbglog("# Diagnosing...\n");
+				dbglog("# Diagnosing...\r\n");
 
 				enum STATUSCODE status = fpga_reset();
 				session_info_t si = {0};
 				if (status == OK_FPGA_RESET)
 					status = glitch(&dbg_logger, &si, false);
 
-				dbglog("# Diagnose status: %08X\n", status);
+				dbglog("# Diagnose status: %08X\r\n", status);
 				if (status == ERR_UNKNOWN_DEVICE)
-					dbglog("# Please make sure console is powered on\n");
+					dbglog("# Please make sure console is powered on\r\n");
 				else if (status == OK_GLITCH_SUCCESS)
 				{
 					debug_led_blink_success();
-					dbglog("# Success!\n");
+					dbglog("# Success!\r\n");
 #if 0
 					fpga_enter_cmd_mode();
-					dbglog("# Wait for command...\n");
+					dbglog("# Wait for command...\r\n");
 
 					uint8_t recv_buffer[512];
 					uint8_t resp_buffer[512];
@@ -297,7 +297,7 @@ void debug_main(struct bootloader_usb *usb)
 						fpga_select_active_buffer(1);
 						fpga_read_buffer(recv_buffer, sizeof(recv_buffer));
 						fpga_post_recv();
-						dbglog("# Got command: %x %x %x\n", recv_buffer[0], recv_buffer[1], recv_buffer[2]);
+						dbglog("# Got command: %x %x %x\r\n", recv_buffer[0], recv_buffer[1], recv_buffer[2]);
 						if (recv_buffer[0] != 0xAA)
 						{
 							resp_buffer[0] = ~recv_buffer[0];
@@ -315,22 +315,22 @@ void debug_main(struct bootloader_usb *usb)
 
 			case 's':
 			{
-				dbglog("# Diagnosing into SDIO handler...\n");
+				dbglog("# Diagnosing into SDIO handler...\r\n");
 
 				enum STATUSCODE status = fpga_reset();
 				session_info_t si = {0};
 				if (status == OK_FPGA_RESET)
 					status = glitch(&dbg_logger, &si, false);
 
-				dbglog("# Diagnose status: %08X\n", status);
+				dbglog("# Diagnose status: %08X\r\n", status);
 				if (status == ERR_UNKNOWN_DEVICE)
-					dbglog("# Please make sure console is powered on\n");
+					dbglog("# Please make sure console is powered on\r\n");
 				else if (status == OK_GLITCH_SUCCESS)
 				{
 					debug_led_blink_success();
-					dbglog("# Running SDIO handler!\n");
+					dbglog("# Running SDIO handler!\r\n");
 					sdio_handler();
-					dbglog("Deep sleep received, SDIO handler done\n");
+					dbglog("Deep sleep received, SDIO handler done\r\n");
 					leds_set_pattern(&lp_usb);
 				}
 				break;
@@ -338,15 +338,15 @@ void debug_main(struct bootloader_usb *usb)
 
 			case 'b':
 			{
-				dbglog("# Boot\n");
+				dbglog("# Boot\r\n");
 				enum STATUSCODE status = fpga_reset();
 				if (status == OK_FPGA_RESET)
 					status = reset_device_and_wait_for_power_on();
-				dbglog("# Status: %08X\n", status);
+				dbglog("# Status: %08X\r\n", status);
 				if (status == OK_FPGA_RESET)
 				{
 					debug_led_blink_success();
-					dbglog("# Success!\n");
+					dbglog("# Success!\r\n");
 				}
 				else
 					leds_set_pattern(&lp_err_adc);
@@ -354,15 +354,15 @@ void debug_main(struct bootloader_usb *usb)
 			}
 			case 'r':
 			{
-				dbglog("# Resetting to factory settings...\n");
-				dbglog("# Status: %08X\n", config_reset());
+				dbglog("# Resetting to factory settings...\r\n");
+				dbglog("# Status: %08X\r\n", config_reset());
 				leds_set_pattern(&lp_config_reset);
 				leds_set_pattern_delayed(&lp_usb, 2000);
 				break;
 			}
 			case 't':
 			{
-				dbglog("# Training...\n");
+				dbglog("# Training...\r\n");
 				uint32_t status = fpga_reset();
 				if (status == OK_FPGA_RESET)
 				{
@@ -375,18 +375,18 @@ void debug_main(struct bootloader_usb *usb)
 						{
 							trains_left--;
 							leds_override(100 , &lp_glitch_done);
-							dbglog("Train step successful; steps left: %d\n", trains_left);
+							dbglog("Train step successful; steps left: %d\r\n", trains_left);
 						}
 					} while (trains_left && status == OK_GLITCH_SUCCESS);
 
 					if (trains_left == 0)
 					{
-						dbglog("# Success; all training attempts completed!\n");
+						dbglog("# Success; all training attempts completed!\r\n");
 					}
 				}
 				if (status == ERR_UNKNOWN_DEVICE)
 				{
-					dbglog("# Please make sure console is powered on\n");
+					dbglog("# Please make sure console is powered on\r\n");
 				}
 				break;
 			}
@@ -394,18 +394,18 @@ void debug_main(struct bootloader_usb *usb)
 			{
 				config_t cfg;
 				uint32_t status = config_load(&cfg);
-				dbglog("# Status: %08X\n", status);
+				dbglog("# Status: %08X\r\n", status);
 				if (status == OK_CONFIG)
 				{
-					dbglog("# Config count: %d\n", cfg.count);
+					dbglog("# Config count: %d\r\n", cfg.count);
 					for (int i = 0; i < cfg.count; ++i)
-						dbglog("# %02d: [%d, %d] %d\n", i, cfg.timings[i].offset, cfg.timings[i].width, cfg.timings[i].success);
+						dbglog("# %02d: [%d, %d] %d\r\n", i, cfg.timings[i].offset, cfg.timings[i].width, cfg.timings[i].success);
 				}
 				break;
 			}
 			case 'e':
 			{
-				dbglog("# Erasing eMMC payload...\n");
+				dbglog("# Erasing eMMC payload...\r\n");
 				uint32_t status = fpga_reset();
 				if (status == OK_FPGA_RESET)
 				{
@@ -417,11 +417,11 @@ void debug_main(struct bootloader_usb *usb)
 						if (status == OK_FLASH_SUCCESS)
 							debug_led_blink_success();
 					}
-					dbglog("# Status: %08X\n", status);
+					dbglog("# Status: %08X\r\n", status);
 				}
 				else
 				{
-					dbglog("# Please make sure console is powered on\n");
+					dbglog("# Please make sure console is powered on\r\n");
 					leds_set_pattern(&lp_err_adc);
 				}
 				break;
@@ -436,24 +436,24 @@ void debug_main(struct bootloader_usb *usb)
 			}
 			case 'h':
 			{
-				dbglog("# Debug menu keys overview\n");
-				dbglog("   'v'  Show modchip board info\n");
-				dbglog("   'd'  Diagnose single boot\n");
-				dbglog("   's'  Boot into SDIO handler\n");
-				dbglog("   'b'  Boot OFW\n");
-				dbglog("   't'  (Re-)train modchip\n");
-				dbglog("   'c'  Show timing configuration table\n");
-				dbglog("   'r'  Reset timing configuration table\n");
-				dbglog("   'p'  Program eMMC with embedded payload\n");
-				dbglog("   'e'  Erase eMMC BOOT0 payload\n");
-				dbglog("   'x'  Jump to bootloader\n");
-				dbglog("   'h'  Show this help text\n");
-				dbglog("# ========================\n");
+				dbglog("# Debug menu keys overview\r\n");
+				dbglog("   'v'  Show modchip board info\r\n");
+				dbglog("   'd'  Diagnose single boot\r\n");
+				dbglog("   's'  Boot into SDIO handler\r\n");
+				dbglog("   'b'  Boot OFW\r\n");
+				dbglog("   't'  (Re-)train modchip\r\n");
+				dbglog("   'c'  Show timing configuration table\r\n");
+				dbglog("   'r'  Reset timing configuration table\r\n");
+				dbglog("   'p'  Program eMMC with embedded payload\r\n");
+				dbglog("   'e'  Erase eMMC BOOT0 payload\r\n");
+				dbglog("   'x'  Jump to bootloader\r\n");
+				dbglog("   'h'  Show this help text\r\n");
+				dbglog("# ========================\r\n");
 				break;
 			}
 
 			default:
-				dbglog("Unrecognized input. Press 'h' for help.\n");
+				dbglog("Unrecognized input. Press 'h' for help.\r\n");
 				break;
 		}
 	}
