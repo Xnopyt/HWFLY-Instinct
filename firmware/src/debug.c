@@ -60,7 +60,7 @@ void dbg_logger_device_type(enum DEVICE_TYPE dt)
 	else if (dt == DEVICE_TYPE_MARIKO)
 		dbglog("Device type: Mariko (V2)\r\n");
 	else if (dt == DEVICE_TYPE_LITE)
-		dbglog("Device type: Lite\r\n");
+		dbglog("Device type: Lite/OLED\r\n");
 	else
 		dbglog("Device type: unknown\r\n");
 }
